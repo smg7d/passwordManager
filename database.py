@@ -6,8 +6,22 @@ def createRecord(platform, link, username, password):
     #generate an id
     #generate sql query
     #execute query
+    if not platform:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A PLATFORM"
+    elif not link:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A LINK"
+    elif not username:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A USERNAME"
+    elif not password:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A PASSWORD"
 
-    return True
+    else:
+        c.execute('''
+            INSERT INTO CREDENTIALS 
+            (PLATFORM, LINK, USERNAME, PASSWORD)
+            VALUES {platform},{link},{username},{password}
+        ''')
+        return 'RECORD ADDED'
     
 def read(id):
     result = {}
