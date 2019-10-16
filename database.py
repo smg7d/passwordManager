@@ -1,3 +1,7 @@
+import sqlite3
+conn = sqlite3.connect('passwordManager.db')
+c = conn.cursor()
+
 def createRecord(platform, link, username, password):
     #generate an id
     #generate sql query
@@ -18,7 +22,7 @@ def updateRecord(id, col, val):
     query_string = f'update ({col}) where id = {id} VALUES (val);'
     #execute query
 
-    return true
+    return True
 
 def deleteRecord(id):
     #this function updates a record given all the parameters
