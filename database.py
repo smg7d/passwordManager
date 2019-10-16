@@ -1,13 +1,28 @@
 import sqlite3
 conn = sqlite3.connect('passwordManager.db')
-c = conn.cursor()
 
 def createRecord(platform, link, username, password):
     #generate an id
     #generate sql query
     #execute query
+    record = conn.cursor()
 
-    return True
+    if not platform:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A PLATFORM"
+    elif not link:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A LINK"
+    elif not username:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A USERNAME"
+    elif not password:
+        return "HEY DUDE, YOU HAVE TO TYPE IN A PASSWORD"
+
+    else:
+        record.execute('''
+            INSERT INTO CREDENTIALS 
+            (PLATFORM, LINK, USERNAME, PASSWORD)
+            VALUES {platform},{link},{username},{password}
+        ''')
+        return 'RECORD ADDED'
     
 def read(id):
     result = {}
@@ -30,3 +45,14 @@ def deleteRecord(id):
     #execute query
 
     return True
+
+def findAllRecords():
+    c = conn.cursor()
+
+    rows = c.execute('''
+        SELECT * FROM CREDENTIALS 
+    ''').fetchall()
+
+    print(type(rows))
+
+findAllRecords()
