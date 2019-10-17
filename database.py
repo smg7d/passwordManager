@@ -25,19 +25,27 @@ def createRecord(platform, link, username, password):
         return 'RECORD ADDED'
     
 def read(id):
-    result = {}
+    #this function takes in a record ID and returns a dictionary of all record fields
+    
     #generate sql query
     #execute and put in dictionary 'result'
+        #if any values are missing, replace them with None
+    
+    #if some error in reading
+        #return false
 
+    result = {"ID": 0, "platform": 'platform', "url": 'url', "username": 'username', "password": 'password'}
     return result
 
-def updateRecord(id, col, val):
+def updateRecord(platform, url, username, password, itemID):
     #this function updates a record given all the parameters
     #create query string dynamically
-    query_string = f'update ({col}) where id = {id} VALUES (val);'
+    query_string = f'update (PLATFORM, URL, USERNAME, PASSWORD) where id = {itemID} VALUES ({platform}, {url}, {username}, {password});'
     #execute query
-
-    return True
+    print(query_string)
+    #if exectution is successful, return string "update successful!"
+    #if not, return the error message
+    return f'Update for {platform} successful!'
 
 def deleteRecord(id):
     #this function updates a record given all the parameters
@@ -54,5 +62,9 @@ def findAllRecords():
     ''').fetchall()
 
     print(type(rows))
+
+    #temporary return, return format example
+    result = {"LifeLock": 1, "BankOfAmerica": 2, "Charles Schwab": 3, "Credit Karma": 4, "Reddit": 5}
+    return result
 
 findAllRecords()
