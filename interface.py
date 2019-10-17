@@ -1,5 +1,5 @@
 from tkinter import *
-import pyperclip as pc
+import pyperclip
 import database
 
 class mainMenu:
@@ -18,12 +18,12 @@ class mainMenu:
         window.geometry(f'{self.width}x{self.height}+{self.xPosition}+{self.yPosition}')
 
         #initialize variables
-        self.platform = ''
-        self.url = ''
-        self.username = ''
-        self.password = ''
-        self.platforms = database.findAllRecords()
-        self.platformVar = StringVar(self.window)
+        self.platform = '' #this stores the 'current' platform
+        self.url = '' #this stores the 'current' url
+        self.username = '' #this stores the 'current' username
+        self.password = '' #this stores the 'current' password
+        self.platforms = database.findAllRecords() #this stores a dictionary of all platforms and their IDs
+        self.platformVar = StringVar(self.window) #this is how you interact with the dropdown box program-wise
 
         #create the labels
         self.mainPlatformLabel = Label(window, text="Load Data: ")
@@ -139,24 +139,50 @@ matches an existing platform.''')
         return
     
     def add(self):
-        #get data in all of the fields
-        #validate the data
-        #confirm that they would like to create a new record
-        #execute query
-        self.alertUser('Add called')
+        #get all the of the fields in the boxes and put them in variables
+        platform = self.platformBox.get()
+        url = self.linkBox.get()
+        username = self.usernameBox.get()
+        password = self.passwordBox.get()
+
+        #check to make sure none of them are invalid
+        if not (platform and url and username and password):
+            self.alertUser('Invalid input. Make sure each box is \n filled out')
+            return
+        #To Do: confirm that they would like to create a new record
+        
+        #call the add function from the database and put its results to the screen
+        self.alertUser(database.createRecord(platform, url, username, password))
         return
 
     def delete(self):
-        #validate platform maps to a valid ID
-        #confirm that they would like to delete the record.
-        #if so, execute the query
-        self.alertUser('Delete called')
+        #get platform, ID
+        platform = self.platformBox.get()
+        itemID = self.platforms.get(platform, None)
+        if not itemID:
+            self.alertUser('Platform not found. Make sure the \n platform in the text box is a \n real platform.')
+            return
+        #to do: confirm they would like to delete
+
+        #try to delete
+        if database.deleteRecord(itemID):
+            self.alertUser(f'{platform} successfully deleted!')
+            self.platforms = database.findAllRecords() #update platform dictionary
+
+        #clear interface fields
+        self.platformVar.set('Select a platform')
+        self.passwordBox.delete(0, END)
+        self.usernameBox.delete(0, END)
+        self.linkBox.delete(0, END)
+        self.platformBox.delete(0, END)
+
         return
 
     def go(self):
-        self.alertUser('Go called')
 
         #copies password to clipboard
+        pyperclip.copy(self.passwordBox.get())
+
         #opens selenium browser to website
 
         return
@@ -164,6 +190,7 @@ matches an existing platform.''')
     def alertUser(self, message):
         self.newWindow = Toplevel(self.window)
         self.alertBox = messageBox(self.newWindow, message)
+
 
 class messageBox:
     def __init__(self, window, message):

@@ -16,12 +16,9 @@ def createRecord(platform, link, username, password):
     elif not password:
         return "HEY DUDE, YOU HAVE TO TYPE IN A PASSWORD"
 
+    #to do, fix this query so that it works
     else:
-        record.execute('''
-            INSERT INTO CREDENTIALS 
-            (PLATFORM, LINK, USERNAME, PASSWORD)
-            VALUES {platform},{link},{username},{password}
-        ''')
+        record.execute(f'INSERT INTO CREDENTIALS (PLATFORM, LINK, USERNAME, PASSWORD) VALUES "{platform}","{link}","{username}","{password}"')
         return 'RECORD ADDED'
     
 def read(id):
@@ -29,10 +26,9 @@ def read(id):
     
     #generate sql query
     #execute and put in dictionary 'result'
+        #if some error in reading
+            #return false
         #if any values are missing, replace them with None
-    
-    #if some error in reading
-        #return false
 
     result = {"ID": 0, "platform": 'platform', "url": 'url', "username": 'username', "password": 'password'}
     return result
@@ -48,10 +44,16 @@ def updateRecord(platform, url, username, password, itemID):
     return f'Update for {platform} successful!'
 
 def deleteRecord(id):
-    #this function updates a record given all the parameters
+    #this function deletes a record given an ID
+
     #create query string dynamically
+
     #execute query
 
+    #if error
+        #return False
+
+    #otherwise
     return True
 
 def findAllRecords():
