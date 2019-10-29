@@ -1,7 +1,8 @@
 import sqlite3
-conn = sqlite3.connect('passwordManager.db')
+
 
 def createRecord(platform, link, username, password):
+    conn = sqlite3.connect('passwordManager.db')
     #generate an id
     #generate sql query
     #execute query
@@ -18,10 +19,12 @@ def createRecord(platform, link, username, password):
 
     #to do, fix this query so that it works
     else:
-        record.execute(f'INSERT INTO CREDENTIALS (PLATFORM, LINK, USERNAME, PASSWORD) VALUES "{platform}","{link}","{username}","{password}"')
-        return 'RECORD ADDED'
+        record.execute('INSERT INTO CREDENTIALS (PLATFORM, LINK, USERNAME, PASSWORD) VALUES (?, ?, ?, ?)', (platform, link, username, password))
+        conn.close()
+        return 'RECORD ADDED' 
     
 def read(id):
+    conn = sqlite3.connect('passwordManager.db')
     #this function takes in a record ID and returns a dictionary of all record fields
     
     #generate sql query
@@ -33,6 +36,7 @@ def read(id):
     conn.cursor.execute('select from CREDENTIALS where id = ?', id)
     arr = conn.fetchone()
     result = {"ID": arr[0], "platform": arr[1], "url": arr[2], "username": arr[3], "password": arr[4]}
+    conn.close()
     return result
 
 def updateRecord(platform, url, username, password, itemID):
@@ -59,16 +63,17 @@ def deleteRecord(id):
     return True
 
 def findAllRecords():
+    conn = sqlite3.connect('passwordManager.db')
     c = conn.cursor()
 
-    rows = c.execute('''
-        SELECT * FROM CREDENTIALS 
-    ''').fetchall()
-
-    print(type(rows))
+    c.execute('SELECT * FROM CREDENTIALS')
+    rows = c.fetchall()
 
     #temporary return, return format example
-    result = {"LifeLock": 1, "BankOfAmerica": 2, "Charles Schwab": 3, "Credit Karma": 4, "Reddit": 5}
+    result = {}
+    print(rows)
+
     return result
 
+createRecord('Charles Schwab','www.charlesschwab.com','notauser','notapassword')
 findAllRecords()
