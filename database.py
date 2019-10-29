@@ -29,8 +29,10 @@ def read(id):
         #if some error in reading
             #return false
         #if any values are missing, replace them with None
-
-    result = {"ID": 0, "platform": 'platform', "url": 'url', "username": 'username', "password": 'password'}
+    
+    conn.cursor.execute('select from CREDENTIALS where id = ?', id)
+    arr = conn.fetchone()
+    result = {"ID": arr[0], "platform": arr[1], "url": arr[2], "username": arr[3], "password": arr[4]}
     return result
 
 def updateRecord(platform, url, username, password, itemID):
