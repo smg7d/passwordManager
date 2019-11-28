@@ -1,12 +1,17 @@
 import sqlite3
-conn = sqlite3.connect('passwordManager.db')
+import math
 
 def createRecord(platform, link, username, password):
-    #generate an id
-    #generate sql query
-    #execute query
+    #create the connection
+    conn = sqlite3.connect('passwordManager.db')
     record = conn.cursor()
 
+    myId = 
+
+    #consolidate the values
+    values = (myId, platform, link, username, password)
+
+    #check for errors
     if not platform:
         return "HEY DUDE, YOU HAVE TO TYPE IN A PLATFORM"
     elif not link:
@@ -16,12 +21,16 @@ def createRecord(platform, link, username, password):
     elif not password:
         return "HEY DUDE, YOU HAVE TO TYPE IN A PASSWORD"
 
-    #to do, fix this query so that it works
+    #execute the statement
     else:
-        record.execute(f'INSERT INTO CREDENTIALS (PLATFORM, LINK, USERNAME, PASSWORD) VALUES "{platform}","{link}","{username}","{password}"')
-        return 'RECORD ADDED'
+        sqlstring = '''INSERT INTO CREDENTIALS VALUES(?, ?, ?, ?, ?)'''
+        record.execute(sqlstring, values)
+        if record.rowcount:
+            return 'success!'
+        return 'fail'
     
 def read(id):
+    conn = sqlite3.connect('passwordManager.db')
     #this function takes in a record ID and returns a dictionary of all record fields
     
     #generate sql query
@@ -57,16 +66,27 @@ def deleteRecord(id):
     return True
 
 def findAllRecords():
+    #create the connection
+    conn = sqlite3.connect('passwordManager.db')
     c = conn.cursor()
 
     rows = c.execute('''
         SELECT * FROM CREDENTIALS 
     ''').fetchall()
 
+    print(c.rowcount())
+
     print(type(rows))
+    print(rows)
+
+    conn.close()
 
     #temporary return, return format example
-    result = {"LifeLock": 1, "BankOfAmerica": 2, "Charles Schwab": 3, "Credit Karma": 4, "Reddit": 5}
-    return result
+    #result = {"LifeLock": 1, "BankOfAmerica": 2, "Charles Schwab": 3, "Credit Karma": 4, "Reddit": 5}
+    return #result
 
-findAllRecords()
+if __name__ == "__main__":
+    print(createRecord("LifeLock", "www.lifelock.com", "username", "hunter2"))
+    print(createRecord("Hackerrank", "www.hackerrank.com", "hacker", "password"))
+    print(createRecord("CoinBase", "www.coinbase.com", "Mr. Robot", "cryptoPassword"))
+    findAllRecords()
