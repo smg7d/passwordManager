@@ -77,31 +77,21 @@ class mainMenu:
         self.deleteButton = Button(self.buttonFrame, text = 'Delete', command=self.delete)
         self.deleteButton.config(width='8')
         self.deleteButton.grid(column=4, row=0, sticky=W)
-    
-    def updateData(self):
-        #get the currently selected platform
-        itemID = str(self.platformVar.get())
-
-        #check if the resulting ID is valid and if not, return without taking action
-        if itemID == None:
-            self.alertUser('You must select a valid platform \n before proceeding')
-            return False
-
-        #get the object from the database
-        newObj = db.read(itemID)
-
-        #update class variables with object results
-        self.platform = newObj.platform
-        self.url = newObj.link
-        self.username = newObj.username
-        self.password = newObj.password
-
-        #return success
-        return True
 
     def getInfo(self):
-        #update data based on the platform selected. if the query failed, return without action
-        if not self.updateData():
+
+        #get the object from the database and update fields
+        try:
+            itemID = str(self.platformVar.get())
+            newObj = db.read(itemID)
+            self.platform = newObj.platform
+            self.url = newObj.link
+            self.username = newObj.username
+            self.password = newObj.password
+        except:
+            #if except, alert and exit
+            self.alertUser(f'''Could not find {itemID} in 
+database. Try adding it.''')
             return
 
         #delete the current values
@@ -119,76 +109,64 @@ class mainMenu:
         return
 
     def update(self):
-        
-        #get update params
-        platform = self.platformBox.get()
-        link = self.linkBox.get()
-        username = self.usernameBox.get()
-        password = self.passwordBox.get()
-
-        #check to make sure none of them are invalid
-        if not (platform):
-            self.alertUser('''Invalid input. Make sure a valid platform
-is selected and try again''')
-            return
-
         #create a new platform object and populate data from interface
         platformToUpdate = db.Platform()
-        platformToUpdate.platform = platform
-        platformToUpdate.link = link
-        platformToUpdate.username = username
-        platformToUpdate.password = password
+        platformToUpdate.platform = self.platformBox.get()
+        platformToUpdate.link = self.linkBox.get()
+        platformToUpdate.username = self.usernameBox.get()
+        platformToUpdate.password = self.passwordBox.get()
+
+        #alert and exit if no platform selected
+        if not platformToUpdate.platform:
+            self.alertUser('''No platform selected. Make sure a 
+valid platform is selected and try again''')
+            return
 
         #call the update function and put its results to the screen
-        self.alertUser(db.update(platformToUpdate))
+        try:
+            self.alertUser(db.update(platformToUpdate))
+        except:
+            self.alertUser('''Invalid input. Make sure a valid platform
+is selected and try again''')
+
         return
     
     def add(self):
-        #get all the of the fields in the boxes and put them in variables
-        platform = self.platformBox.get()
-        link = self.linkBox.get()
-        username = self.usernameBox.get()
-        password = self.passwordBox.get()
-
-        #check to make sure none of them are invalid
-        if not (platform and link and username and password):
-            self.alertUser('Invalid input. Make sure each box is \n filled out')
-            return
-        #To Do: confirm that they would like to create a new record
-
         #create a new platform object and populate data from interface
-        platformToUpdate = db.Platform()
-        platformToUpdate.platform = platform
-        platformToUpdate.link = link
-        platformToUpdate.username = username
-        platformToUpdate.password = password
-        
-        #call the add function from the database and put its results to the screen
-        self.alertUser(db.create(platformToUpdate))
-        self.refreshPlatformMenu()
+        platformToAdd = db.Platform()
+        platformToAdd.platform = self.platformBox.get()
+        platformToAdd.link = self.linkBox.get()
+        platformToAdd.username = self.usernameBox.get()
+        platformToAdd.password = self.passwordBox.get()
+
+        try:
+            self.alertUser(db.create(platformToAdd))
+            self.refreshPlatformMenu()
+        except:
+            self.alertUser(f'''Could not add "{platformToAdd.platform}".
+Re-enter data and try again.''')
+
         return
 
     def delete(self):
         #get platform, ID
-        platform = self.platformBox.get()
-        if not platform:
-            self.alertUser('Platform not found. Make sure the \n platform in the text box is a \n real platform.')
-            return
-        #to do: confirm they would like to delete
+        try:
+            platform = self.platformBox.get()
 
-        #try to delete
-        if db.delete(platform):
-            self.alertUser(f'{platform} successfully deleted!')
-            self.platforms = db.getPlatforms() #update platform dictionary
-
-        #clear interface fields
-        self.platformVar.set('Select a platform')
-        self.passwordBox.delete(0, END)
-        self.usernameBox.delete(0, END)
-        self.linkBox.delete(0, END)
-        self.platformBox.delete(0, END)
-
-        self.refreshPlatformMenu()
+            if not platform or (platform not in self.platforms):
+                self.alertUser('''Invalid platform. Select
+a platform and try again''')
+                return
+            self.alertUser(db.delete(platform))
+            self.platformVar.set('Select a platform')
+            self.passwordBox.delete(0, END)
+            self.usernameBox.delete(0, END)
+            self.linkBox.delete(0, END)
+            self.platformBox.delete(0, END)
+            self.refreshPlatformMenu()
+        except:
+            self.alertUser(f'''Could not delete {platform}
+Re-enter data and try again.''')
 
         return
 
@@ -206,10 +184,12 @@ is selected and try again''')
         self.alertBox = messageBox(self.newWindow, message)
 
     def refreshPlatformMenu(self):
-        print("we here")
+        #erase current menu options 
         menu = self.platformMenu['menu']
         menu.delete(0, 'end')
 
+        print("in here")
+        #populate menu options based on db platforms
         self.platforms = db.getPlatforms()
         for p in self.platforms:
             menu.add_command(label=p, 
@@ -217,7 +197,6 @@ is selected and try again''')
 
         self.platformVar.set('Select a platform')
         return
-
 
 class messageBox:
     def __init__(self, window, message):

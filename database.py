@@ -12,7 +12,6 @@ class Platform(Base):
     username = Column(String(250), nullable=True)
     password = Column(String(250), nullable=True)
 
-#move all error checking to the DB side, surface exceptions as necessary
 #check if database exists, if not, create one with the right table
 #auto-get info on dropdown change. delete "get info" button
 #bind to executable to be shared
@@ -25,7 +24,6 @@ def getPlatforms():
     session = DBSession()
     allPlatforms = session.query(Platform).all()
     platformNameList = [p.platform for p in allPlatforms]
-    print(platformNameList)
     session.close()
     return platformNameList
 
@@ -33,8 +31,8 @@ def create(platform_obj):
     session = DBSession()
     session.add(platform_obj)
     session.commit()
-    session.close()
-    return "you son of a bitch, I'm in"
+
+    return (f'{platform_obj.platform} successfully added!')
 
 def read(platform_name):
     #takes an ID, returns an object from the database
@@ -60,4 +58,4 @@ def delete(platform_name):
     session.query(Platform).filter(Platform.platform == platform_name).delete()
     session.commit()
     session.close()
-    return True
+    return (f'{platform_name} has been successfully deleted!')
