@@ -1,95 +1,60 @@
-import sqlite3
-import math
+import sqlite3, os, math, sys
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-def createRecord(platform, link, username, password):
-    #create the connection
-    conn = sqlite3.connect('passwordManager.db')
-    record = conn.cursor()
+#declare the class
+Base = declarative_base()
+class Platform(Base):
+    __tablename__ = 'logInData'
+    platform = Column(String(250), primary_key = True)
+    link = Column(String(250), nullable=True)
+    username = Column(String(250), nullable=True)
+    password = Column(String(250), nullable=True)
 
-    myId = 
+#check if database exists, if not, create one with the right table
 
-    #consolidate the values
-    values = (myId, platform, link, username, password)
+#set up the session factory
+engine = create_engine('sqlite:///passwordManager.db')
+DBSession = sessionmaker(bind=engine)
 
-    #check for errors
-    if not platform:
-        return "HEY DUDE, YOU HAVE TO TYPE IN A PLATFORM"
-    elif not link:
-        return "HEY DUDE, YOU HAVE TO TYPE IN A LINK"
-    elif not username:
-        return "HEY DUDE, YOU HAVE TO TYPE IN A USERNAME"
-    elif not password:
-        return "HEY DUDE, YOU HAVE TO TYPE IN A PASSWORD"
+def getPlatforms():
+    session = DBSession()
+    allPlatforms = session.query(Platform).all()
+    platformNameList = [p.platform for p in allPlatforms]
+    print(platformNameList)
+    session.close()
+    return platformNameList
 
-    #execute the statement
-    else:
-        sqlstring = '''INSERT INTO CREDENTIALS VALUES(?, ?, ?, ?, ?)'''
-        record.execute(sqlstring, values)
-        if record.rowcount:
-            return 'success!'
-        return 'fail'
-    
-def read(id):
-    conn = sqlite3.connect('passwordManager.db')
-    #this function takes in a record ID and returns a dictionary of all record fields
-    
-    #generate sql query
-    #execute and put in dictionary 'result'
-        #if some error in reading
-            #return false
-        #if any values are missing, replace them with None
-    
-    conn.cursor.execute('select from CREDENTIALS where id = ?', id)
-    arr = conn.fetchone()
-    result = {"ID": arr[0], "platform": arr[1], "url": arr[2], "username": arr[3], "password": arr[4]}
-    conn.close()
+def create(platform_obj):
+    session = DBSession()
+    session.add(platform_obj)
+    session.commit()
+    session.close()
+    return "you son of a bitch, I'm in"
+
+def read(platform_name):
+    #takes an ID, returns an object from the database
+    session = DBSession()
+    result = session.query(Platform).filter(Platform.platform == platform_name).one()
+    session.close()
     return result
 
-def updateRecord(platform, url, username, password, itemID):
-    #this function updates a record given all the parameters
-    #create query string dynamically
-    query_string = f'update (PLATFORM, URL, USERNAME, PASSWORD) where id = {itemID} VALUES ({platform}, {url}, {username}, {password});'
-    #execute query
-    print(query_string)
-    #if exectution is successful, return string "update successful!"
-    #if not, return the error message
-    return f'Update for {platform} successful!'
+def update(platformObj):
+    #takes an object, updates object with values
+    session = DBSession()
+    toUpdate = session.query(Platform).filter(Platform.platform == platformObj.platform).one()
+    toUpdate.link = platformObj.link
+    toUpdate.username = platformObj.username
+    toUpdate.password = platformObj.password
+    session.add(toUpdate)
+    session.commit()
+    session.close()
+    return (f'{platformObj.platform} successfully updated!')
 
-def deleteRecord(id):
-    #this function deletes a record given an ID
-
-    #create query string dynamically
-
-    #execute query
-
-    #if error
-        #return False
-
-    #otherwise
+def delete(platform_name):
+    session = DBSession()
+    session.query(Platform).filter(Platform.platform == platform_name).delete()
+    session.commit()
+    session.close()
     return True
-
-def findAllRecords():
-    #create the connection
-    conn = sqlite3.connect('passwordManager.db')
-    c = conn.cursor()
-
-    rows = c.execute('''
-        SELECT * FROM CREDENTIALS 
-    ''').fetchall()
-
-    print(c.rowcount())
-
-    print(type(rows))
-    print(rows)
-
-    conn.close()
-
-    #temporary return, return format example
-    #result = {"LifeLock": 1, "BankOfAmerica": 2, "Charles Schwab": 3, "Credit Karma": 4, "Reddit": 5}
-    return #result
-
-if __name__ == "__main__":
-    print(createRecord("LifeLock", "www.lifelock.com", "username", "hunter2"))
-    print(createRecord("Hackerrank", "www.hackerrank.com", "hacker", "password"))
-    print(createRecord("CoinBase", "www.coinbase.com", "Mr. Robot", "cryptoPassword"))
-    findAllRecords()

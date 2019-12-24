@@ -1,6 +1,6 @@
 from tkinter import *
 import pyperclip
-import database
+import database as db
 
 class mainMenu:
     def __init__(self, window):
@@ -22,10 +22,10 @@ class mainMenu:
         self.url = '' #this stores the 'current' url
         self.username = '' #this stores the 'current' username
         self.password = '' #this stores the 'current' password
-        self.platforms = database.findAllRecords() #this stores a dictionary of all platforms and their IDs
+        self.platforms = db.getPlatforms() #this gets a list of all platforms
         self.platformVar = StringVar(self.window) #this is how you interact with the dropdown box program-wise
 
-        #create the labels
+        #create the labels  
         self.mainPlatformLabel = Label(window, text="Load Data: ")
         self.mainPlatformLabel.grid(column=0, row=0, sticky=W)
         self.platformLabel = Label(self.window, text="Platform: ")
@@ -79,22 +79,22 @@ class mainMenu:
         self.deleteButton.grid(column=4, row=0, sticky=W)
     
     def updateData(self):
-        #get the ID for the selected platform, return None if the platform is not in the dictionary
-        itemID = self.platforms.get(str(self.platformVar.get()), None)
+        #get the currently selected platform
+        itemID = str(self.platformVar.get())
 
         #check if the resulting ID is valid and if not, return without taking action
         if itemID == None:
             self.alertUser('You must select a valid platform \n before proceeding')
             return False
 
-        #get the data from the database
-        newData = database.read(itemID)
+        #get the object from the database
+        newObj = db.read(itemID)
 
-        #update class variables with results from query
-        self.platform = newData.get("platform", "-")
-        self.url = newData.get("url", "-")
-        self.username = newData.get("username", "-")
-        self.password = newData.get("password", "-")
+        #update class variables with object results
+        self.platform = newObj.platform
+        self.url = newObj.link
+        self.username = newObj.username
+        self.password = newObj.password
 
         #return success
         return True
@@ -120,54 +120,66 @@ class mainMenu:
 
     def update(self):
         
-        #get all the of the fields in the boxes and put them in variables
+        #get update params
         platform = self.platformBox.get()
-        url = self.linkBox.get()
+        link = self.linkBox.get()
         username = self.usernameBox.get()
         password = self.passwordBox.get()
-        itemID = self.platforms.get(platform, None)
 
         #check to make sure none of them are invalid
-        if not (platform and url and username and password and itemID):
-            self.alertUser('''Invalid input. Make sure each box is
-filled out and the platform box 
-matches an existing platform.''')
+        if not (platform):
+            self.alertUser('''Invalid input. Make sure a valid platform
+is selected and try again''')
             return
 
+        #create a new platform object and populate data from interface
+        platformToUpdate = db.Platform()
+        platformToUpdate.platform = platform
+        platformToUpdate.link = link
+        platformToUpdate.username = username
+        platformToUpdate.password = password
+
         #call the update function and put its results to the screen
-        self.alertUser(database.updateRecord(platform, url, username, password, itemID))
+        self.alertUser(db.update(platformToUpdate))
         return
     
     def add(self):
         #get all the of the fields in the boxes and put them in variables
         platform = self.platformBox.get()
-        url = self.linkBox.get()
+        link = self.linkBox.get()
         username = self.usernameBox.get()
         password = self.passwordBox.get()
 
         #check to make sure none of them are invalid
-        if not (platform and url and username and password):
+        if not (platform and link and username and password):
             self.alertUser('Invalid input. Make sure each box is \n filled out')
             return
         #To Do: confirm that they would like to create a new record
+
+        #create a new platform object and populate data from interface
+        platformToUpdate = db.Platform()
+        platformToUpdate.platform = platform
+        platformToUpdate.link = link
+        platformToUpdate.username = username
+        platformToUpdate.password = password
         
         #call the add function from the database and put its results to the screen
-        self.alertUser(database.createRecord(platform, url, username, password))
+        self.alertUser(db.create(platformToUpdate))
+        self.refreshPlatformMenu()
         return
 
     def delete(self):
         #get platform, ID
         platform = self.platformBox.get()
-        itemID = self.platforms.get(platform, None)
-        if not itemID:
+        if not platform:
             self.alertUser('Platform not found. Make sure the \n platform in the text box is a \n real platform.')
             return
         #to do: confirm they would like to delete
 
         #try to delete
-        if database.deleteRecord(itemID):
+        if db.delete(platform):
             self.alertUser(f'{platform} successfully deleted!')
-            self.platforms = database.findAllRecords() #update platform dictionary
+            self.platforms = db.getPlatforms() #update platform dictionary
 
         #clear interface fields
         self.platformVar.set('Select a platform')
@@ -175,6 +187,8 @@ matches an existing platform.''')
         self.usernameBox.delete(0, END)
         self.linkBox.delete(0, END)
         self.platformBox.delete(0, END)
+
+        self.refreshPlatformMenu()
 
         return
 
@@ -190,6 +204,19 @@ matches an existing platform.''')
     def alertUser(self, message):
         self.newWindow = Toplevel(self.window)
         self.alertBox = messageBox(self.newWindow, message)
+
+    def refreshPlatformMenu(self):
+        print("we here")
+        menu = self.platformMenu['menu']
+        menu.delete(0, 'end')
+
+        self.platforms = db.getPlatforms()
+        for p in self.platforms:
+            menu.add_command(label=p, 
+                             command=lambda value=p: self.platformVar.set(value))
+
+        self.platformVar.set('Select a platform')
+        return
 
 
 class messageBox:
