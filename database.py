@@ -12,7 +12,10 @@ class Platform(Base):
     username = Column(String(250), nullable=True)
     password = Column(String(250), nullable=True)
 
+#move all error checking to the DB side, surface exceptions as necessary
 #check if database exists, if not, create one with the right table
+#auto-get info on dropdown change. delete "get info" button
+#bind to executable to be shared
 
 #set up the session factory
 engine = create_engine('sqlite:///passwordManager.db')
