@@ -3,6 +3,22 @@ from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
+#check if database exists and if not, create new one
+try:
+    con = sqlite3.connect('file:passwordManager.db?mode=rw', uri=True)
+except sqlite3.Error:
+    print('passwordManager.db database not found. creating a new one')
+    con = sqlite3.connect('passwordManager.db')
+    c = con.cursor()
+    c.execute('''CREATE TABLE logInData (
+        platform text PRIMARY KEY,
+        link text,
+        username text,
+        password text);
+        ''')
+    con.commit()
+    con.close()
+
 #declare the class
 Base = declarative_base()
 class Platform(Base):
@@ -12,9 +28,9 @@ class Platform(Base):
     username = Column(String(250), nullable=True)
     password = Column(String(250), nullable=True)
 
-#check if database exists, if not, create one with the right table
 #auto-get info on dropdown change. delete "get info" button
 #bind to executable to be shared
+
 
 #set up the session factory
 engine = create_engine('sqlite:///passwordManager.db')
@@ -42,7 +58,7 @@ def read(platform_name):
     return result
 
 def update(platformObj):
-    #takes an object, updates object with values
+    #takes an object, updates object with values, returns success string
     session = DBSession()
     toUpdate = session.query(Platform).filter(Platform.platform == platformObj.platform).one()
     toUpdate.link = platformObj.link
